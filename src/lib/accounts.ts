@@ -1,0 +1,153 @@
+/* eslint-disable prefer-const */
+import axios from "axios";
+import type {
+  SyncUpdatedResponse,
+  SyncResponse,
+  EmailMessage,
+} from "./../types";
+
+/**
+ * Represents an email account.
+ *
+ * @property {string} token - The Aurinko API token for the account.
+ *
+ * @example
+ * const account = new Account("my_token");
+ * const { emails, deltaToken } = await account.performInitialSync();
+ * console.log("Synced", emails.length, "emails");
+ * console.log("Delta token:", deltaToken);
+ */
+export class Account {
+  private token: string;
+
+  constructor(token: string) {
+    this.token = token;
+  }
+
+  /**
+   * Initiates the email synchronization process with the Aurinko API.
+   *
+   * @returns {Promise<SyncResponse>} The response data from the API, containing sync tokens and status.
+   *
+   * @throws {Error} Throws an error if the request fails.
+   */
+  private async startSync() {
+    const response = await axios.post<SyncResponse>(
+      "https://api.aurinko.io/v1/email/sync",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+        params: {
+          daysWithin: 2,
+          bodyType: "html",
+        },
+      },
+    );
+
+    return response.data;
+  }
+
+  /**
+   * Gets the updated emails since the last sync, or the next page of updated emails.
+   *
+   * @param {Object} options - Options for the request.
+   * @param {string} [options.deltaToken] - The delta token to request emails newer than.
+   * @param {string} [options.pageToken] - The page token to request the next page of emails.
+   *
+   * @returns {Promise<SyncUpdatedResponse>} The response data from the API, containing the updated emails and sync tokens.
+   *
+   * @throws {Error} Throws an error if the request fails.
+   */
+  private async getUpdatedEmails({
+    deltaToken,
+    pageToken,
+  }: {
+    deltaToken?: string;
+    pageToken?: string;
+  }) {
+    const params: Record<string, string> = {};
+
+    if (deltaToken) params.deltaToken = deltaToken;
+    if (pageToken) params.pageToken = pageToken;
+
+    const response = await axios.get<SyncUpdatedResponse>(
+      "https://api.aurinko.io/v1/email/sync/updated",
+      {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+        params,
+      },
+    );
+
+    return response.data;
+  }
+
+  /**
+   * Perform an initial sync of emails from the Aurinko API.
+   *
+   * The method starts the sync process and waits for it to complete. It then fetches all
+   * updated emails since the last sync, and returns all the emails fetched, along with the
+   * latest delta token to be stored for future incremental syncs.
+   *
+   * @returns {Promise<{ emails: EmailMessage[], deltaToken: string }>} The response data from the API, containing the emails and sync tokens.
+   *
+   * @throws {Error} Throws an error if the request fails.
+   */
+  async performInitialSync() {
+    try {
+      //Start the sync process
+      let syncResponse = await this.startSync();
+      while (!syncResponse.ready) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        syncResponse = await this.startSync();
+      }
+
+      // Get the bookmark delta token
+      let storedDeltaToken: string = syncResponse.syncUpdatedToken;
+
+      let updatedResponse = await this.getUpdatedEmails({
+        deltaToken: storedDeltaToken,
+      });
+
+      if (updatedResponse.nextDeltaToken) {
+        // Sync has completed
+        storedDeltaToken = updatedResponse.nextDeltaToken;
+      }
+      let allEMails: EmailMessage[] = updatedResponse.records;
+
+      //Fetch all pages if there are more
+      while (updatedResponse.nextPageToken) {
+        updatedResponse = await this.getUpdatedEmails({
+          pageToken: updatedResponse.nextPageToken,
+        });
+        allEMails = allEMails.concat(updatedResponse.records);
+        if (updatedResponse.nextDeltaToken) {
+          // Sync has completed
+          storedDeltaToken = updatedResponse.nextDeltaToken;
+        }
+      }
+
+      console.log("Intial sync completed!", allEMails.length, "emails synced");
+
+      //Return latest next delta token to be stored in the database for future incremental syncs
+      return {
+        emails: allEMails,
+        deltaToken: storedDeltaToken,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error(
+          "Error syncing emails:",
+          JSON.stringify(error.response?.data),
+          null,
+          2,
+        );
+      } else {
+        console.error("Unexpected error syncing emails:", error);
+      }
+    }
+  }
+}
