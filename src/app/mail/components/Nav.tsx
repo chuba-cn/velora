@@ -22,7 +22,10 @@ interface NavProps {
 
 const Nav = ({ links, isCollapsed }: NavProps) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [_, setTab] = useLocalStorage("velora-tab", "inbox");
+  const [_, setTab] = useLocalStorage<"inbox" | "draft" | "sent">(
+    "velora-tab",
+    "inbox",
+  );
   return (
     <div
       data-collapsed={isCollapsed}
@@ -34,7 +37,11 @@ const Nav = ({ links, isCollapsed }: NavProps) => {
             <Tooltip key={index} delayDuration={0}>
               <TooltipTrigger asChild>
                 <span
-                  onClick={() => setTab(link.title.toLowerCase())}
+                  onClick={() =>
+                    setTab(
+                      link.title.toLowerCase() as "inbox" | "draft" | "sent",
+                    )
+                  }
                   className={cn(
                     buttonVariants({ variant: link.variant, size: "icon" }),
                     "h-9 w-9 cursor-pointer",
@@ -58,7 +65,9 @@ const Nav = ({ links, isCollapsed }: NavProps) => {
           ) : (
             <span
               key={index}
-              onClick={() => setTab(link.title.toLowerCase())}
+              onClick={() =>
+                setTab(link.title.toLowerCase() as "inbox" | "draft" | "sent")
+              }
               className={cn(
                 buttonVariants({ variant: link.variant, size: "sm" }),
                 link.variant === "default" &&

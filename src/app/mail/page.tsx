@@ -6,7 +6,7 @@ import React from "react";
 
 const Mail = dynamic(
   () => {
-    return import("./Mail");
+    return import("./components/Mail");
   },
   { ssr: false },
 );

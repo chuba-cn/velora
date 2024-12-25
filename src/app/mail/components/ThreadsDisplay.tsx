@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
 import EmailDisplay from "./EmailDisplay";
+import ReplyBox from "./ReplyBox";
 
 const ThreadsDisplay = () => {
   const { threadId, threads } = useThreads();
@@ -112,7 +113,7 @@ const ThreadsDisplay = () => {
             <div className="flex-1"></div>
             <Separator className="mt-auto" />
             {/* Reply Box */}
-            Reply Box
+            <ReplyBox />
           </div>
         </>
       ) : (
