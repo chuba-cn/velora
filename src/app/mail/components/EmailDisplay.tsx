@@ -38,7 +38,7 @@ const EmailDisplay = ({ email }: EmailDisplayProps) => {
       <div className="h-4"></div>
         <Letter
           html={ email?.body ?? "" }
-          className="bg-white rounded-md text-black"
+          className="bg-white rounded-md text-black dark:text-white dark:bg-black"
         />
     </div>
   )

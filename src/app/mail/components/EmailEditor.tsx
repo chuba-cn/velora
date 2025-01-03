@@ -9,10 +9,17 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import TagInput from "./TagInput";
 import { Input } from "@/components/ui/input";
-import AIComposeButton from "./AiComposeButton";
 import { generateAutoCompletion } from "../actions/action";
 import { readStreamableValue } from "ai/rsc";
 import { Skeleton } from "@/components/ui/skeleton";
+import dynamic from "next/dynamic";
+
+const AIComposeButton = dynamic(
+  () => {
+    return import("./AiComposeButton");
+  },
+  { ssr: false },
+);
 
 type EmailEditorProps = {
   subject: string;
@@ -41,18 +48,18 @@ const EmailEditor = ({
 }: EmailEditorProps) => {
   const [value, setValue] = React.useState<string>("");
   const [expanded, setExpanded] = React.useState<boolean>(
-    defualtToolbarExpanded
+    defualtToolbarExpanded,
   );
-  const [ chunks, setChunks ] = React.useState<string>("");
+  const [chunks, setChunks] = React.useState<string>("");
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
 
-  console.log("AI loading state: ", isLoading)
+  console.log("AI loading state: ", isLoading);
 
   const CustomText = Text.extend({
     addKeyboardShortcuts(this) {
       return {
         "Mod-y": () => {
-          console.log("Meta-y")
+          console.log("Meta-y");
           void generateAiAutoComplete(this.editor.getText());
           return true;
         },
@@ -66,12 +73,12 @@ const EmailEditor = ({
     onUpdate: ({ editor }) => {
       setValue(editor.getHTML());
     },
-    immediatelyRender: false
+    immediatelyRender: false,
   });
 
   const onGenerate = (token: string) => {
-    editor?.commands?.insertContent(token)
-  }
+    editor?.commands?.insertContent(token);
+  };
 
   const generateAiAutoComplete = async (editorText: string) => {
     const { output } = await generateAutoCompletion(editorText);
@@ -79,12 +86,11 @@ const EmailEditor = ({
     for await (const chunk of readStreamableValue(output)) {
       if (chunk) setChunks(chunk);
     }
-      
-  }
+  };
 
   React.useEffect(() => {
     editor?.commands?.insertContent(chunks);
-  }, [editor, chunks])
+  }, [editor, chunks]);
 
   if (!editor) return null;
 
@@ -126,17 +132,20 @@ const EmailEditor = ({
             <span className="text-green-600">Draft </span>
             <span>to {to.join(", ")}</span>
           </div>
-          <AIComposeButton isComposing={ defualtToolbarExpanded } onGenerate={ onGenerate } handleLoading={ setIsLoading} />
+          <AIComposeButton
+            isComposing={defualtToolbarExpanded}
+            onGenerate={onGenerate}
+            handleLoading={setIsLoading}
+          />
         </div>
 
-        { isLoading && (
+        {isLoading && (
           <div className="flex flex-col space-y-2">
             <Skeleton className="h-4 w-[250px]" />
             <Skeleton className="h-4 w-[250px]" />
-            <Skeleton className="h-4 w-[200px]"/>
+            <Skeleton className="h-4 w-[200px]" />
           </div>
         )}
-
       </div>
 
       <div className="prose w-full px-4">

@@ -70,7 +70,6 @@ const Mail = ({
             <Sidebar isCollapsed={isCollapsed} />
             <div className="flex-1"></div>
             {/* AI */}
-            Ask AI
           </div>
         </ResizablePanel>
 

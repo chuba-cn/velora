@@ -18,14 +18,16 @@ const ReplyBox = () => {
 
   if (!replyDetails) {
     return (
-      <div className="flex items-center justify-center w-full h-full">
-        <Loader2  size={20} className="animate-spin dark:text-white text-black/40"/>
+      <div className="flex h-full w-full items-center justify-center">
+        <Loader2
+          size={20}
+          className="animate-spin text-black/40 dark:text-white"
+        />
       </div>
-    )
-  };
+    );
+  }
 
   return <Component replyDetails={replyDetails} />;
-
 };
 
 type ComponentProps = {
@@ -43,8 +45,10 @@ const Component = ({ replyDetails }: ComponentProps) => {
   const [toValues, setToValues] = React.useState<
     { label: string; value: string }[]
   >(
-    replyDetails.to.map((to) => ({ label: to.address ?? to.name, value: to.address })) ||
-      [],
+    replyDetails.to.map((to) => ({
+      label: to.address ?? to.name,
+      value: to.address,
+    })) || [],
   );
   const [ccValues, setCcValues] = React.useState<
     { label: string; value: string }[]
@@ -76,49 +80,54 @@ const Component = ({ replyDetails }: ComponentProps) => {
         value: cc.address,
       })),
     );
+  }, [replyDetails, threadId]);
 
-  }, [ replyDetails, threadId ])
-  
-   const handleSend = async (value: string) => {
-     if (!replyDetails) return;
+  const handleSend = async (value: string) => {
+    if (!replyDetails) return;
 
-     sendEmail.mutate({
-       accountId,
-       threadId: threadId ?? undefined,
-       body: value,
-       subject,
-       from: replyDetails.from,
-       to: replyDetails.to.map(to => ({ address: to.address, name: to.name ?? "" })),
-       cc: replyDetails.cc.map(cc => ({ address: cc.address, name: cc.name ?? "" })),
-       replyTo: replyDetails.from,
-       inReplyTo: replyDetails.id
-     }, {
-       onSuccess: () => {
-         toast.success("Email Sent!")
-       },
-       onError: () => {
-         console.error("Error sending email");
-         toast.error("Error sending email");
-       }
-     })
-   };
+    sendEmail.mutate(
+      {
+        accountId,
+        threadId: threadId ?? undefined,
+        body: value,
+        subject,
+        from: replyDetails.from,
+        to: replyDetails.to.map((to) => ({
+          address: to.address,
+          name: to.name ?? "",
+        })),
+        cc: replyDetails.cc.map((cc) => ({
+          address: cc.address,
+          name: cc.name ?? "",
+        })),
+        replyTo: replyDetails.from,
+        inReplyTo: replyDetails.id,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Email Sent!");
+        },
+        onError: () => {
+          console.error("Error sending email");
+          toast.error("Error sending email");
+        },
+      },
+    );
+  };
 
   return (
     <EmailEditor
-      subject={ subject }
-      setSubject={ setSubject }
-      
-      toValues={ toValues }
-      setToValues={ setToValues }
-      
-      ccValues={ ccValues }
-      setCcValues={ setCcValues }
-      
-      to={ replyDetails.to.map(to => to.address) }
-      handleSend={ handleSend }
+      subject={subject}
+      setSubject={setSubject}
+      toValues={toValues}
+      setToValues={setToValues}
+      ccValues={ccValues}
+      setCcValues={setCcValues}
+      to={replyDetails.to.map((to) => to.address)}
+      handleSend={handleSend}
       isSending={sendEmail.isPending}
     />
-  )
+  );
 };
 
 export default ReplyBox;

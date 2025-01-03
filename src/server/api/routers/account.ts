@@ -90,6 +90,10 @@ export const accountRouter = createTRPCRouter({
       ctx.auth.userId,
     );
 
+    // Fetch new emails and sync to database
+    const acc = new Account(account.accessToken);
+    acc.syncEmails().catch(console.error);
+
     // eslint-disable-next-line prefer-const
     let filter: Prisma.ThreadWhereInput = {};
     if (input.tab === "inbox") {
