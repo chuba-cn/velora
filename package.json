@@ -21,6 +21,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@ai-sdk/cohere": "^1.0.6",
+    "@ai-sdk/google": "^1.0.12",
     "@clerk/nextjs": "^6.9.2",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^5.14.0",
@@ -60,7 +62,9 @@
     "@trpc/react-query": "^11.0.0-rc.446",
     "@trpc/server": "^11.0.0-rc.446",
     "@types/dompurify": "^3.2.0",
+    "@types/turndown": "^5.0.5",
     "@vercel/functions": "^1.5.2",
+    "ai": "^4.0.22",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -89,7 +93,9 @@
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "turndown": "^7.2.0",
     "usehooks-ts": "^3.1.0",
+    "vaul": "^1.1.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {

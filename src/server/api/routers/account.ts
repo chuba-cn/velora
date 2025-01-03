@@ -24,6 +24,21 @@ export const authorizeAccountAccess = async (accountId: string, userId: string) 
   return account;
 }
 
+const inboxFilter = (accountId: string): Prisma.ThreadWhereInput => ({
+  accountId,
+  inboxStatus: true
+});
+
+const sentFilter = (accountId: string): Prisma.ThreadWhereInput => ({
+  accountId,
+  sentStatus: true
+});
+
+const draftFilter = (accountId: string): Prisma.ThreadWhereInput => ({
+  accountId,
+  draftStatus: true
+});
+
 export const accountRouter = createTRPCRouter({
   getAccounts: privateProcedure.query(async ({ ctx }) => {
     return await ctx.db.account.findMany({
@@ -47,11 +62,11 @@ export const accountRouter = createTRPCRouter({
     // eslint-disable-next-line prefer-const
     let filter: Prisma.ThreadWhereInput = {};
     if (input.tab === "inbox") {
-      filter.inboxStatus = true;
+      filter = inboxFilter(account.id);
     } else if (input.tab === "draft") {
-      filter.draftStatus = true;
+      filter = draftFilter(account.id)
     } else if (input.tab === "sent") {
-      filter.sentStatus = true;
+      filter = sentFilter(account.id);
     }
 
     return await ctx.db.thread.count({
@@ -75,11 +90,11 @@ export const accountRouter = createTRPCRouter({
     // eslint-disable-next-line prefer-const
     let filter: Prisma.ThreadWhereInput = {};
     if (input.tab === "inbox") {
-      filter.inboxStatus = true;
+      filter = inboxFilter(account.id);
     } else if (input.tab === "draft") {
-      filter.draftStatus = true;
+      filter = draftFilter(account.id);
     } else if (input.tab === "sent") {
-      filter.sentStatus = true;
+      filter = sentFilter(account.id);
     }
 
     filter.done = {

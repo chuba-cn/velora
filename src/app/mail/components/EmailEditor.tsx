@@ -9,6 +9,10 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import TagInput from "./TagInput";
 import { Input } from "@/components/ui/input";
+import AIComposeButton from "./AiComposeButton";
+import { generateAutoCompletion } from "../actions/action";
+import { readStreamableValue } from "ai/rsc";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type EmailEditorProps = {
   subject: string;
@@ -39,12 +43,17 @@ const EmailEditor = ({
   const [expanded, setExpanded] = React.useState<boolean>(
     defualtToolbarExpanded
   );
+  const [ chunks, setChunks ] = React.useState<string>("");
+  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+
+  console.log("AI loading state: ", isLoading)
 
   const CustomText = Text.extend({
-    addKeyboardShortcuts() {
+    addKeyboardShortcuts(this) {
       return {
-        "Meta-j": () => {
-          console.log("Meta-j");
+        "Mod-y": () => {
+          console.log("Meta-y")
+          void generateAiAutoComplete(this.editor.getText());
           return true;
         },
       };
@@ -57,7 +66,25 @@ const EmailEditor = ({
     onUpdate: ({ editor }) => {
       setValue(editor.getHTML());
     },
+    immediatelyRender: false
   });
+
+  const onGenerate = (token: string) => {
+    editor?.commands?.insertContent(token)
+  }
+
+  const generateAiAutoComplete = async (editorText: string) => {
+    const { output } = await generateAutoCompletion(editorText);
+
+    for await (const chunk of readStreamableValue(output)) {
+      if (chunk) setChunks(chunk);
+    }
+      
+  }
+
+  React.useEffect(() => {
+    editor?.commands?.insertContent(chunks);
+  }, [editor, chunks])
 
   if (!editor) return null;
 
@@ -99,7 +126,17 @@ const EmailEditor = ({
             <span className="text-green-600">Draft </span>
             <span>to {to.join(", ")}</span>
           </div>
+          <AIComposeButton isComposing={ defualtToolbarExpanded } onGenerate={ onGenerate } handleLoading={ setIsLoading} />
         </div>
+
+        { isLoading && (
+          <div className="flex flex-col space-y-2">
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]"/>
+          </div>
+        )}
+
       </div>
 
       <div className="prose w-full px-4">
@@ -112,7 +149,7 @@ const EmailEditor = ({
         <span className="text-sm">
           Tip: Press{" "}
           <kbd className="border-gray-200 bg-gray-100 px-2 py-1.5 text-xs font-semibold text-gray-800">
-            Cmd + J
+            Cmd + Y
           </kbd>{" "}
           for AI autocomplete
         </span>
