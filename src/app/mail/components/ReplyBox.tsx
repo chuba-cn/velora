@@ -6,6 +6,7 @@ import EmailEditor from "./EmailEditor";
 import useThreads from "@/hooks/useThreads";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const ReplyBox = () => {
   const { accountId, threadId } = useThreads();
@@ -54,7 +55,7 @@ const Component = ({ replyDetails }: ComponentProps) => {
     })) || [],
   );
 
-  // const sendEmail = api.mail.sendEmail.useMutation();
+  const sendEmail = api.account.sendEmail.useMutation();
 
   React.useEffect(() => {
     if (!replyDetails || !threadId) return;
@@ -79,7 +80,27 @@ const Component = ({ replyDetails }: ComponentProps) => {
   }, [ replyDetails, threadId ])
   
    const handleSend = async (value: string) => {
-     console.log("Email Sent", value);
+     if (!replyDetails) return;
+
+     sendEmail.mutate({
+       accountId,
+       threadId: threadId ?? undefined,
+       body: value,
+       subject,
+       from: replyDetails.from,
+       to: replyDetails.to.map(to => ({ address: to.address, name: to.name ?? "" })),
+       cc: replyDetails.cc.map(cc => ({ address: cc.address, name: cc.name ?? "" })),
+       replyTo: replyDetails.from,
+       inReplyTo: replyDetails.id
+     }, {
+       onSuccess: () => {
+         toast.success("Email Sent!")
+       },
+       onError: () => {
+         console.error("Error sending email");
+         toast.error("Error sending email");
+       }
+     })
    };
 
   return (
@@ -95,7 +116,7 @@ const Component = ({ replyDetails }: ComponentProps) => {
       
       to={ replyDetails.to.map(to => to.address) }
       handleSend={ handleSend }
-      isSending={false}
+      isSending={sendEmail.isPending}
     />
   )
 };
