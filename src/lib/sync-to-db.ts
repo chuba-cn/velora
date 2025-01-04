@@ -1,19 +1,49 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { db } from "@/server/db";
 import type { EmailAddress, EmailAttachment, EmailMessage } from "@/types";
 import { Prisma } from "@prisma/client";
 import pLimit from "p-limit";
+import { OramaClient } from "./orama";
+import { turndown } from "./turndown";
 
 export const syncEmailsToDatabase = async (emails: EmailMessage[], accountId: string) => {
   console.log("Attempting to sync emails to database", emails.length);
-  const promiseBatchLimit = pLimit(10);
+  const promiseBatchLimit = pLimit(10); //process up to ten emails concurrently
+
+  const orama = new OramaClient(accountId);
+  await orama.initialize();
 
   try {
-    // await Promise.all(emails.map((email, index) => upsertEmail(email, accountId, index)));
-    for (const email of emails) {
-      await upsertEmail(email, accountId, 0);
+
+    async function syncToOrama() {
+      await Promise.all(emails.map(email => {
+        return promiseBatchLimit(async () => {
+          const body = turndown.turndown(email.body ?? email.bodySnippet ?? "");
+          
+          await orama.insert({
+            body,
+            subject: email.subject,
+            rawBody: email.bodySnippet ?? "",
+            from: `${email.from.name} <${email.from.address}>`,
+            to: email.to.map((t) => `${t.name} <${t.address}>`),
+            sentAt: new Date(email.sentAt).toLocaleString(),
+            threadId: email.threadId,
+          });
+        })
+      }))
     }
+
+    async function syncToDB() {
+      for (const [ index, email ] of emails.entries()) {
+        await upsertEmail(email, accountId, index);
+      }
+    }
+
+    await Promise.all([ syncToOrama(), syncToDB() ]);
+    await orama.saveIndex();
+
   } catch (error) {
     console.error("Failed to sync emails to database", error);
     throw error;
