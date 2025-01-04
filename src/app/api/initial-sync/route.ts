@@ -76,6 +76,5 @@ export const POST = async (req: NextRequest) => {
   //Write emails to database
   await syncEmailsToDatabase(emails, accountId);
 
-  console.log("Syncing completed", deltaToken);
   return NextResponse.json({ success: true }, { status: 200 });
 };

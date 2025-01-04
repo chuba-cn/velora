@@ -13,6 +13,7 @@ export class OramaClient {
   }
 
   async saveIndex() {
+    console.log("Saving Orama index")
     const index = await persist(this.orama, "json")
 
     await db.account.update({
@@ -26,6 +27,7 @@ export class OramaClient {
   }
 
   async initialize() {
+    console.log("Initializing Orama Client")
     const account = await db.account.findUnique({
       where: {
         id: this.accountId
@@ -57,12 +59,15 @@ export class OramaClient {
   }
 
   async search({ term }: { term: string }) {
+    console.log(`Searching for ${term}`)
     return await search(this.orama, {
       term
     })
   }
 
   async insert(document: any) {
+    console.log("Inserting docuemnt into Orama db")
+    console.dir(document)
     await insert(this.orama, document);
     await this.saveIndex();
   }
