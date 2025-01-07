@@ -16,6 +16,7 @@ import Sidebar from "./Sidebar";
 import ThreadsList from "./ThreadsList";
 import ThreadsDisplay from "./ThreadsDisplay";
 import SearchBar from "./SearchBar";
+import AskAI from "./AskAI";
 
 type MailProps = {
   defaultLayout: number[] | undefined;
@@ -70,7 +71,8 @@ const Mail = ({
             {/* Sidebar */}
             <Sidebar isCollapsed={isCollapsed} />
             <div className="flex-1"></div>
-            {/* AI */}
+            {/* AI */ }
+            <AskAI />
           </div>
         </ResizablePanel>
 
