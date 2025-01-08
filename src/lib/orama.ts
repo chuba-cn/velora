@@ -85,7 +85,6 @@ export class OramaClient {
 
   async insert(document: any) {
     console.log("Inserting docuemnt into Orama db")
-    console.dir(document)
     await insert(this.orama, document);
     await this.saveIndex();
   }
