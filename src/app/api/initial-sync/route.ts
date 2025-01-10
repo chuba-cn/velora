@@ -7,7 +7,7 @@ import { syncEmailsToDatabase } from "@/lib/sync-to-db";
 import { db } from "@/server/db";
 import { NextResponse, type NextRequest } from "next/server";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export const POST = async (req: NextRequest) => {
   const { accountId, userId } = (await req.json()) as {
