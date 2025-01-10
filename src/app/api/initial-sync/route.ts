@@ -7,22 +7,8 @@ import { syncEmailsToDatabase } from "@/lib/sync-to-db";
 import { db } from "@/server/db";
 import { NextResponse, type NextRequest } from "next/server";
 
-/**
- * Handle the initial syncing of emails for a user.
- *
- * The request body should contain the following:
- * - `accountId`: The ID of the Account to sync
- * - `userId`: The ID of the User the Account belongs to
- *
- * The response will contain the following:
- * - `success`: A boolean indicating if the syncing was successful
- *
- * The response status will be:
- * - 200 if the syncing was successful
- * - 400 if the request body is invalid
- * - 404 if the Account or User is not found
- * - 500 if there is an unexpected error
- */
+export const maxDuration = 300;
+
 export const POST = async (req: NextRequest) => {
   const { accountId, userId } = (await req.json()) as {
     accountId: string;

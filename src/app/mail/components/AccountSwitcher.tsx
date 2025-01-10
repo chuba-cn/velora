@@ -5,6 +5,7 @@ import { getAurinkoAuthUrl } from "@/lib/aurinko";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { useLocalStorage } from "usehooks-ts";
 
 type AccountSwitcherProps = {
@@ -46,9 +47,17 @@ const AccountSwitcher = ({ isCollapsed }: AccountSwitcherProps) => {
         }) }
         
         <div
-          onClick={async() => {
-            const authUrl = await getAurinkoAuthUrl("Google");
-            window.location.href = authUrl;
+          onClick={ async () => {
+            try {
+              const authUrl = await getAurinkoAuthUrl("Google");
+              window.location.href = authUrl;
+            } catch (error) {
+              if (error instanceof Error && error.message.includes("You have reached the maximum number of accounts for your subscription")) {
+                toast.error(
+                  "You have reached the maximum number of accounts for your subscription",
+                );
+              }
+            }
           }}
           className="flex relative hover:bg-gray-50 w-full cursor-pointer items-center rounded-sm py-1.5 pl-2 pr-8 text-sm outline-none focus:bg-accent"
         >

@@ -24,6 +24,7 @@
     "@ai-sdk/cohere": "^1.0.6",
     "@ai-sdk/google": "^1.0.12",
     "@clerk/nextjs": "^6.9.2",
+    "@formkit/auto-animate": "^0.8.2",
     "@hookform/resolvers": "^3.9.1",
     "@orama/orama": "^3.0.4",
     "@orama/plugin-data-persistence": "^3.0.4",
@@ -57,6 +58,7 @@
     "@radix-ui/react-tooltip": "^1.1.5",
     "@t3-oss/env-nextjs": "^0.10.1",
     "@tanstack/react-query": "^5.50.0",
+    "@tiptap/core": "2.10.4",
     "@tiptap/extension-text": "^2.10.4",
     "@tiptap/react": "^2.10.4",
     "@tiptap/starter-kit": "^2.10.4",
@@ -92,9 +94,11 @@
     "react-select": "^5.9.0",
     "server-only": "^0.0.1",
     "sonner": "^1.7.1",
+    "stripe": "^17.5.0",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
+    "tinykeys": "^3.0.0",
     "turndown": "^7.2.0",
     "usehooks-ts": "^3.1.0",
     "vaul": "^1.1.2",
@@ -120,5 +124,10 @@
   "ct3aMetadata": {
     "initVersion": "7.38.1"
   },
-  "packageManager": "pnpm@9.12.2"
+  "packageManager": "pnpm@9.12.2",
+  "pnpm": {
+    "patchedDependencies": {
+      "tinykeys@3.0.0": "patches/tinykeys@3.0.0.patch"
+    }
+  }
 }

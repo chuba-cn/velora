@@ -2,6 +2,10 @@
 
 import { auth } from "@clerk/nextjs/server";
 import axios from "axios";
+import { getSubscriptionStatus } from "./stripe-action";
+import { db } from "@/server/db";
+import { FREE_ACCOUNTS_PER_USER, PRO_ACCOUNTS_PER_USER } from "@/constants";
+import type { EmailMessage } from "@/types";
 
 interface AurinkoTokenResponse {
   accountId: number;
@@ -17,6 +21,19 @@ export const getAurinkoAuthUrl = async (
 
   if (!userId) {
     throw new Error("User not authenticated");
+  }
+
+  const isSubscribed = await getSubscriptionStatus();
+  const numAccounts = await db.account.count({ where: { userId } });
+
+  if (isSubscribed) {
+    if (numAccounts > PRO_ACCOUNTS_PER_USER) {
+      throw new Error("You have reached the maximum number of accounts for your subscription");
+    }
+  } else {
+    if (numAccounts > FREE_ACCOUNTS_PER_USER) {
+      throw new Error("You have reached the maximum number of accounts for your subscription");
+    }
   }
 
   const params = new URLSearchParams({
@@ -89,3 +106,27 @@ export const getAccountDetails = async (token: string) => {
     throw error;
   }
 };
+
+export const getEmailDetails = async (accessToken: string, emailId: string) => {
+  try {
+    const response = await axios.get<EmailMessage>(
+      `https://api.aurinko.io/v1/email/messages/${emailId}`,
+      {
+        params: {
+          loadInlines: true,
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+    );
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Error fetching email details:", error.response?.data);
+    } else {
+      console.error("Unexpected error fetching email details:", error);
+    }
+    throw error;
+  }
+}

@@ -51,7 +51,7 @@ export class OramaClient {
           to: "string[]",
           sentAt: "string",
           threadId: "string",
-          embeddings: "vector[1024]"
+          embeddings: "vector[768]"
         }
       })
     }

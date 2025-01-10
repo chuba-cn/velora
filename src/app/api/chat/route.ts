@@ -1,5 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { FREE_CREDITS_PER_DAY } from './../../../constants';
 import { OramaClient } from "@/lib/orama";
+import { getSubscriptionStatus } from "@/lib/stripe-action";
+import { db } from "@/server/db";
 import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
 import { type Message } from "ai";
@@ -8,11 +14,36 @@ import { streamText } from "ai";
 export const maxDuration = 30;
 
 export const POST = async (request: Request) => {
+
+  const today = new Date().toDateString();
   try {
     const { userId } = await auth();
 
     if (!userId) {
       return new Response("UNAUTHORIZED", { status: 401 });
+    }
+
+    const isSubscribed = await getSubscriptionStatus();
+
+    if (!isSubscribed) {
+      const chatbotInteraction = await db.chatbotInteraction.findUnique({
+        where: {
+          userId,
+          day:today
+        }
+      })
+
+      if (!chatbotInteraction) {
+        await db.chatbotInteraction.create({
+          data: {
+            day: today,
+            userId,
+            count: 1
+          }
+        })
+      } else if (chatbotInteraction.count >= FREE_CREDITS_PER_DAY) {
+        return new Response("You have reached the free limit for today", { status: 429 });
+      }
     }
 
     const { accountId, messages } = (await request.json()) as {
@@ -54,7 +85,20 @@ export const POST = async (request: Request) => {
       system:
         "You are an AI email assistant embedded in an email client app. Your purpose is to help the user compose emails by answering questions, providing suggestions, and offering relevant information based on the context of their previous emails.",
       prompt,
-      temperature: 0.3
+      temperature: 0.3,
+      onFinish: async () => {
+        await db.chatbotInteraction.update({
+          where: {
+            day: today,
+            userId
+          },
+          data: {
+            count: {
+              increment: 1
+            }
+          }
+        })
+      }
     });
 
     return result.toDataStreamResponse();

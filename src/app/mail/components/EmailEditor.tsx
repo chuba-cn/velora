@@ -13,6 +13,8 @@ import { generateAutoCompletion } from "../actions/action";
 import { readStreamableValue } from "ai/rsc";
 import { Skeleton } from "@/components/ui/skeleton";
 import dynamic from "next/dynamic";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import GhostExtension from "@/lib/extension";
 
 const AIComposeButton = dynamic(
   () => {
@@ -34,7 +36,7 @@ type EmailEditorProps = {
   defualtToolbarExpanded?: boolean;
 };
 
-const EmailEditor = ({
+const   EmailEditor = ({
   ccValues,
   handleSend,
   isSending,
@@ -46,6 +48,8 @@ const EmailEditor = ({
   toValues,
   defualtToolbarExpanded = false,
 }: EmailEditorProps) => {
+  const [ref] = useAutoAnimate();
+
   const [value, setValue] = React.useState<string>("");
   const [expanded, setExpanded] = React.useState<boolean>(
     defualtToolbarExpanded,
@@ -59,7 +63,6 @@ const EmailEditor = ({
     addKeyboardShortcuts(this) {
       return {
         "Mod-y": () => {
-          console.log("Meta-y");
           void generateAiAutoComplete(this.editor.getText());
           return true;
         },
@@ -69,7 +72,12 @@ const EmailEditor = ({
 
   const editor = useEditor({
     autofocus: false,
-    extensions: [StarterKit, CustomText],
+    extensions: [StarterKit, CustomText, GhostExtension],
+    editorProps: {
+      attributes: {
+        placeholder: "Write your email here...",
+      },
+    },
     onUpdate: ({ editor }) => {
       setValue(editor.getHTML());
     },
@@ -90,17 +98,41 @@ const EmailEditor = ({
 
   React.useEffect(() => {
     editor?.commands?.insertContent(chunks);
-  }, [editor, chunks]);
+  }, [ editor, chunks ]);
+  
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key === "Enter" &&
+        editor &&
+        !["INPUT", "TEXTAREA", "SELECT"].includes(
+          document.activeElement?.tagName ?? "",
+        )
+      ) {
+        editor.commands.focus();
+      }
+      if (event.key === "Escape" && editor) {
+        editor.commands.blur();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editor]);
 
   if (!editor) return null;
 
   return (
     <div>
-      <div className="flex border-0 p-4 py-2">
+      <div className="flex border-b p-4 py-2">
         <EmailEditorMenuBar editor={editor} />
       </div>
 
-      <div className="space-y-2 p-4 pb-0">
+      <div ref={ref} className="space-y-2 p-4 pb-0">
         {expanded && (
           <>
             <TagInput

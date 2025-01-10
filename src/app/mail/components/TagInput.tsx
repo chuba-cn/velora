@@ -59,7 +59,10 @@ const TagInput = ({ label, onChange, placeholder, value }: TagInputProps) => {
             return "dark:!bg-gray-700";
           },
           multiValueLabel: () => {
-            return "dark:!text-white dark:!bg-gray-700 !rounded-md";
+            return "dark:text-white dark:bg-gray-700 rounded-md";
+          },
+          menu: () => {
+            return "dark:!bg-gray-900 dark:text-zinc-500"
           },
         } }
         onInputChange={ setSelectInputValue }

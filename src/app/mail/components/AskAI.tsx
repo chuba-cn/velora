@@ -182,9 +182,12 @@ import { useChat } from "ai/react";
 import useThreads from "@/hooks/useThreads";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import PremiuimBanner from "./PremiuimBanner";
+import { api } from "@/trpc/react";
 
 const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
   const { accountId } = useThreads();
+  const utils = api.useUtils();
   const {
     input,
     handleInputChange,
@@ -198,10 +201,15 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
     api: "/api/chat",
     body: { accountId },
     onError: (error) => {
-      if (error.message.includes("Limit reached")) {
-        toast.error("You have reached the limit. Please upgrade to pro.");
+      if (error.message.includes("You have reached the free limit")) {
+        toast.error(
+          "You have reached the limit for today. Please upgrade to the pro plan to get unlimited messages.",
+        );
       }
     },
+    onFinish: () => {
+      void utils.account.getChatbotInteractionsCount.refetch();
+    }
   });
 
   React.useEffect(() => {
@@ -218,6 +226,10 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
   return (
     <div className="mx-auto mb-14 w-full max-w-2xl p-4">
+      <PremiuimBanner />
+
+      <div className="h-4"></div>
+
       <motion.div className="flex flex-1 flex-col items-end justify-end rounded-lg border bg-gray-100 p-4 pb-4 shadow-inner dark:bg-gray-900">
         <div
           className="flex max-h-[50vh] w-full flex-col gap-2 overflow-y-auto overflow-x-hidden"
@@ -248,7 +260,7 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
               </React.Fragment>
             ))}
             {isLoading && (
-              <motion.div className="mt-2 mb-4 self-start">
+              <motion.div className="mb-4 mt-2 self-start">
                 <Loader2 className="h-4 w-4 animate-spin text-gray-500" />
               </motion.div>
             )}
@@ -312,7 +324,8 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
 
         <form className="flex w-full" onSubmit={handleSubmit}>
           <input
-            className="relative h-9 flex-grow rounded-full border border-gray-200 bg-white px-3 py-1 text-sm outline-none placeholder:text-xs placeholder:text-gray-400 focus-visible:ring-1 focus-visible:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+            type="text"
+            className="py- relative h-9 flex-grow rounded-full border border-gray-200 bg-white px-3 text-[15px] outline-none placeholder:text-[13px] placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-blue-500/20 focus-visible:ring-offset-1 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 dark:focus-visible:ring-blue-500/20 dark:focus-visible:ring-offset-1 dark:focus-visible:ring-offset-gray-700"
             placeholder="Ask AI anything about your emails"
             value={input}
             onChange={handleInputChange}
