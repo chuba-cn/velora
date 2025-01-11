@@ -40,6 +40,7 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
       if (!result) return;
 
       const { emails, deltaToken } = result;
+      console.log("emails length: ", emails.length, deltaToken)
 
       await db.account.update({
         where: {
