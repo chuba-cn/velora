@@ -205,6 +205,10 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
         toast.error(
           "You have reached the limit for today. Please upgrade to the pro plan to get unlimited messages.",
         );
+      } else if (error && error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast("Something unexpected occurred")
       }
     },
     onFinish: () => {
@@ -225,17 +229,17 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
   if (isCollapsed) return null;
 
   return (
-    <div className="mx-auto mb-14 w-full max-w-2xl p-4">
+    <div className="mx-auto mb-14 w-full max-w-2xl p-4 overflow-y-scroll">
       <PremiuimBanner />
 
       <div className="h-4"></div>
 
-      <motion.div className="flex flex-1 flex-col items-end justify-end rounded-lg border bg-gray-100 p-4 pb-4 shadow-inner dark:bg-gray-900">
+      <motion.div className="flex flex-1 flex-col items-end justify-end rounded-lg border bg-gray-100 p-4 pb-4 shadow-inner dark:bg-gray-900 overflow-y-scroll">
         <div
           className="flex max-h-[50vh] w-full flex-col gap-2 overflow-y-auto overflow-x-hidden"
           id="message-container"
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="sync">
             {messages.map((message) => (
               <React.Fragment key={message.id}>
                 <motion.div
@@ -270,17 +274,19 @@ const AskAI = ({ isCollapsed }: { isCollapsed: boolean }) => {
         {error && (
           <div className="mt-4 w-full rounded-lg bg-red-50 p-4 dark:bg-red-900/20">
             <p className="text-sm text-red-600 dark:text-red-400">
-              {"Something went wrong. Please retry"}
+              {error.message ?? "Something went wrong!"}
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => reload()}
-              className="mt-2"
-            >
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Retry
-            </Button>
+            { !error.message.includes("free limit") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => reload()}
+                className="mt-2"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Retry
+              </Button>
+            )}
           </div>
         )}
 

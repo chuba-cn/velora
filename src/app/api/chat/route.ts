@@ -1,13 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { FREE_CREDITS_PER_DAY } from './../../../constants';
 import { OramaClient } from "@/lib/orama";
 import { getSubscriptionStatus } from "@/lib/stripe-action";
 import { db } from "@/server/db";
 import { google } from "@ai-sdk/google";
 import { auth } from "@clerk/nextjs/server";
+import { Prisma } from '@prisma/client';
 import { type Message } from "ai";
 import { streamText } from "ai";
 
@@ -15,7 +13,9 @@ export const maxDuration = 30;
 
 export const POST = async (request: Request) => {
 
-  const today = new Date().toDateString();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayString = today.toDateString();
   try {
     const { userId } = await auth();
 
@@ -24,40 +24,92 @@ export const POST = async (request: Request) => {
     }
 
     const isSubscribed = await getSubscriptionStatus();
-
+   
     if (!isSubscribed) {
-      const chatbotInteraction = await db.chatbotInteraction.findUnique({
+      let currentInteraction = await db.chatbotInteraction.findUnique({
         where: {
-          userId,
-          day:today
-        }
-      })
-
-      if (!chatbotInteraction) {
-        await db.chatbotInteraction.create({
-          data: {
-            day: today,
+          day_userId: {
+            day: todayString,
             userId,
-            count: 1
+          },
+        },
+      });
+
+      if (!currentInteraction) {
+        try {
+          currentInteraction = await db.chatbotInteraction.create({
+            data: {
+              day: todayString,
+              userId,
+              count: 0,
+            },
+          });
+        } catch (createError) {
+          // In case of race condition where record was created between our check and create
+          if (
+            createError instanceof Prisma.PrismaClientKnownRequestError &&
+            createError.code === "P2002"
+          ) {
+            // Retry the find after creation failed
+            currentInteraction = await db.chatbotInteraction.findUnique({
+              where: {
+                day_userId: {
+                  day: todayString,
+                  userId,
+                },
+              },
+            });
+          } else {
+            throw createError;
           }
-        })
-      } else if (chatbotInteraction.count >= FREE_CREDITS_PER_DAY) {
-        return new Response("You have reached the free limit for today", { status: 429 });
+        }
+      } else if (currentInteraction.count >= FREE_CREDITS_PER_DAY) {
+        console.log("current chat", currentInteraction); 
+        return new Response(
+          "You have reached the free limit for today",
+          {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
       }
     }
+
+      
+   
 
     const { accountId, messages } = (await request.json()) as {
       accountId: string;
       messages: Message[];
     };
 
+    if (!messages?.length) {
+      return new Response("No messages provided", {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+
     const orama = new OramaClient(accountId);
     await orama.initialize();
 
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = messages[ messages.length - 1 ];
+    
+    if (!lastMessage?.content) {
+      return new Response("Invalid message content", {
+        status: 400,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-asserted-optional-chain
-    const context = await orama.vectorSearch({ term: lastMessage?.content! });
+    const context = await orama.vectorSearch({ term: lastMessage?.content });
     console.log(context.hits.length + "hits found");
 
     const prompt = `RESPONSE GUIDELINES:
@@ -80,30 +132,48 @@ export const POST = async (request: Request) => {
      - Do not invent or speculate about anything that is not directly supported by the email context.
      - Keep your responses concise and relevant to the user's questions or the email being composed.`;
 
-    const result = streamText({
-      model: google("gemini-1.5-pro-latest"),
-      system:
-        "You are an AI email assistant embedded in an email client app. Your purpose is to help the user compose emails by answering questions, providing suggestions, and offering relevant information based on the context of their previous emails.",
-      prompt,
-      temperature: 0.3,
-      onFinish: async () => {
-        await db.chatbotInteraction.update({
-          where: {
-            day: today,
-            userId
-          },
-          data: {
-            count: {
-              increment: 1
-            }
+    
+    try {
+      const result = streamText({
+        model: google("gemini-1.5-pro-latest"),
+        system:
+          "You are an AI email assistant embedded in an email client app. Your purpose is to help the user compose emails by answering questions, providing suggestions, and offering relevant information based on the context of their previous emails.",
+        prompt,
+        temperature: 0.3,
+        onFinish: async () => {
+          
+          if (!isSubscribed) {
+            
+            await db.chatbotInteraction.update({
+              where: {
+                day_userId: {
+                  day: todayString,
+                  userId,
+                },
+              },
+              data: {
+                count: {
+                  increment: 1,
+                },
+              },
+            });
           }
-        })
-      }
-    });
+        },
+      });
 
-    return result.toDataStreamResponse();
+      return result.toDataStreamResponse();
+    } catch (streamError) {
+      console.error("Streaming Error: ", streamError);
+      return new Response("Error processing your request", {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+    
   } catch (error) {
-    console.error("error", error);
-    return new Response("INTERNAL SERVER ERROR", { status: 500 });
+    console.error("API error", error);
+    return new Response("INTERNAL SERVER ERROR", { status: 500, headers: { 'Content-Type': "application/json"} });
   }
 };

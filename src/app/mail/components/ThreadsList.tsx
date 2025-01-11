@@ -47,16 +47,16 @@ const ThreadsList = () => {
                     onClick={() => setThreadId(thread.id)}
                     key={thread.id}
                     className={cn(
-                      "relative flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all",
+                      "relative flex flex-col items-start gap-2 rounded-lg border p-3 text-left text-sm transition-all hover:bg-black/20",
                       visualMode &&
                         selectedThreadIds.includes(thread.id) &&
                         "bg-blue-200 dark:bg-blue-900",
-                      // { "bg-accent": thread.id === threadId },
+                      
                     )}
                   >
                     {threadId === thread.id && (
                       <motion.div
-                        className="absolute inset-0 z-[-1] rounded-lg bg-black/10 dark:bg-white/20"
+                        className="absolute inset-0 z-[-1] rounded-lg bg-black/10 dark:bg-white/10"
                         layoutId="thread-list-item"
                         transition={{
                           duration: 0.1,

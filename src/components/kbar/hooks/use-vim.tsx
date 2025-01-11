@@ -25,7 +25,7 @@ const useVim = () => {
     onMutate: async (payload) => {
       if (!payload.threadId && !payload.threadIds) return;
       if (!done) return;
-      toast.success("Undone!");
+      toast.success("Email marked as done!");
 
       await queryClient.cancelQueries({ queryKey });
       const previousData =
