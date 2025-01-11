@@ -5,7 +5,9 @@ import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
 import { waitUntil } from "@vercel/functions";
-import axios from "axios";
+import { Client } from "@upstash/workflow";
+
+const upstashWorkflowClient = new Client({token: process.env.QSTASH_TOKEN!})
 
 export const GET = async (request: NextRequest) => {
   const { userId } = await auth();
@@ -55,16 +57,18 @@ export const GET = async (request: NextRequest) => {
       accessToken: token.accessToken,
     },
   });
-  
+
   // Trigger initial email sync endpoint
   waitUntil(
-    axios
-      .post(`${process.env.NEXT_PUBLIC_URL!}/api/initial-sync`, {
+    upstashWorkflowClient.trigger({
+      url: `${process.env.NEXT_PUBLIC_URL!}/api/initial-sync`,
+      body: {
         accountId: token.accountId.toString(),
-        userId,
-      })
-      .then((response) => {
-        console.log("Initial sync triggered", response.data);
+        userId
+      }
+    })
+      .then((workflowRunId) => {
+        console.log("Initial sync triggered with id: ", workflowRunId);
       })
       .catch((error) => {
         console.log("Failed to trigger initial sync", error.response.data);
