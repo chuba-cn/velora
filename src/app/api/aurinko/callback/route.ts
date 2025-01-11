@@ -66,6 +66,9 @@ export const GET = async (request: NextRequest) => {
         accountId: token.accountId.toString(),
         userId,
       },
+      headers: {
+        "Content-Type": "application/json"
+      }
     });
   } catch (workflowError) {
     console.log("Failed to trigger initial sync", workflowError);
