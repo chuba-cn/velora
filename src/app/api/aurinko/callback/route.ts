@@ -55,7 +55,7 @@ export const GET = async (request: NextRequest) => {
       accessToken: token.accessToken,
     },
   });
-  console.log("userId & accountID: ", userId, token.accountId);
+  
   // Trigger initial email sync endpoint
   waitUntil(
     axios

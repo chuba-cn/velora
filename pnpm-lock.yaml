@@ -151,6 +151,12 @@ importers:
       '@types/turndown':
         specifier: ^5.0.5
         version: 5.0.5
+      '@upstash/qstash':
+        specifier: ^2.7.20
+        version: 2.7.20
+      '@upstash/workflow':
+        specifier: ^0.2.4
+        version: 0.2.4
       '@vercel/functions':
         specifier: ^1.5.2
         version: 1.5.2
@@ -1933,6 +1939,12 @@ packages:
   '@ungap/structured-clone@1.2.1':
     resolution: {integrity: sha512-fEzPV3hSkSMltkw152tJKNARhOupqbH96MZWyRjNaYZOMIzbrTeQDG+MTc6Mr2pgzFQzFxAfmhGDNP5QK++2ZA==}
 
+  '@upstash/qstash@2.7.20':
+    resolution: {integrity: sha512-fdh5df4BuJwSUhXv33g/Eaj7gG+fu3tBoXyGE5hg4zEZX9fwUY/nuc0uDlLWh54L66JfMdESVOjIaiLa1cgL1Q==}
+
+  '@upstash/workflow@0.2.4':
+    resolution: {integrity: sha512-ZzjQmktefhPe3NjNS/CKYxceHdvB4H++nDTCUhesdn66c6GD1YQDgvf0yKrX12s9HunLYXX3oSI5c34+4RQ0SQ==}
+
   '@vercel/functions@1.5.2':
     resolution: {integrity: sha512-9XuynFoM/J1X+LSahgjhuAZCbZ96vm9mpXapCkSS1MX890U7zLh7n2RW/2KLNuxsXt8u8h2dOCw+Njtg+7pXgQ==}
     engines: {node: '>= 16'}
@@ -2970,6 +2982,9 @@ packages:
     resolution: {integrity: sha512-2yTgeWTWzMWkHu6Jp9NKgePDaYHbntiwvYuuJLbbN9vl7DC9DvXKOB2BC3ZZ92D3cvV/aflH0osDfwpHepQ53w==}
     hasBin: true
 
+  jose@5.9.6:
+    resolution: {integrity: sha512-AMlnetc9+CV9asI19zHmrgS/WYsWUwCn2R7RzlbJWD7F9eWYUTGyBmU9o6PxngtLGOiDGPRu+Uc4fhKzbpteZQ==}
+
   jotai@2.10.4:
     resolution: {integrity: sha512-/T4ofyMSkAybEs2OvR8S4HACa+/ASUEPLz86SUjFXJqU9RdJKLvZDJrag398suvHC5CR0+Cs4P5m/gtVcryzlw==}
     engines: {node: '>=12.20.0'}
@@ -3210,6 +3225,10 @@ packages:
 
   natural-compare@1.4.0:
     resolution: {integrity: sha512-OWND8ei3VtNC9h7V60qff3SVobHr996CTwgxubgyQYEpg290h9J0buyECNNJexkFm5sOajh5G116RYA1c8ZMSw==}
+
+  neverthrow@7.2.0:
+    resolution: {integrity: sha512-iGBUfFB7yPczHHtA8dksKTJ9E8TESNTAx1UQWW6TzMF280vo9jdPYpLUXrMN1BCkPdHFdNG3fxOt2CUad8KhAw==}
+    engines: {node: '>=18'}
 
   next-themes@0.4.4:
     resolution: {integrity: sha512-LDQ2qIOJF0VnuVrrMSMLrWGjRMkq+0mpgl6e0juCLqdJ+oo8Q84JRWT6Wh11VDQKkMMe+dVzDKLWs5n87T+PkQ==}
@@ -5952,6 +5971,16 @@ snapshots:
 
   '@ungap/structured-clone@1.2.1': {}
 
+  '@upstash/qstash@2.7.20':
+    dependencies:
+      crypto-js: 4.2.0
+      jose: 5.9.6
+      neverthrow: 7.2.0
+
+  '@upstash/workflow@0.2.4':
+    dependencies:
+      '@upstash/qstash': 2.7.20
+
   '@vercel/functions@1.5.2': {}
 
   acorn-jsx@5.3.2(acorn@8.14.0):
@@ -7130,6 +7159,8 @@ snapshots:
 
   jiti@1.21.6: {}
 
+  jose@5.9.6: {}
+
   jotai@2.10.4(@types/react@18.3.16)(react@18.3.1):
     optionalDependencies:
       '@types/react': 18.3.16
@@ -7336,6 +7367,8 @@ snapshots:
   nanoid@3.3.8: {}
 
   natural-compare@1.4.0: {}
+
+  neverthrow@7.2.0: {}
 
   next-themes@0.4.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
