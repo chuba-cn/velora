@@ -104,11 +104,13 @@ export class Account {
     try {
       //Start the sync process
       let syncResponse = await this.startSync();
+      console.log('sync response status', syncResponse.ready)
       while (!syncResponse.ready) {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         syncResponse = await this.startSync();
       }
 
+      console.log("syn response success data: ", syncResponse)
       // Get the bookmark delta token
       let storedDeltaToken: string = syncResponse.syncUpdatedToken;
 
@@ -116,6 +118,7 @@ export class Account {
         deltaToken: storedDeltaToken,
       });
 
+      console.log("updated response records: ", updatedResponse.records)
       if (updatedResponse.nextDeltaToken) {
         // Sync has completed
         storedDeltaToken = updatedResponse.nextDeltaToken;
@@ -127,6 +130,7 @@ export class Account {
         updatedResponse = await this.getUpdatedEmails({
           pageToken: updatedResponse.nextPageToken,
         });
+         console.log("updated response records ++: ", updatedResponse.records);
         allEMails = allEMails.concat(updatedResponse.records);
         if (updatedResponse.nextDeltaToken) {
           // Sync has completed

@@ -7,6 +7,8 @@ import { syncEmailsToDatabase } from "@/lib/sync-to-db";
 import { db } from "@/server/db";
 import { serve } from "@upstash/workflow/nextjs";
 
+export const dynamic = "force-dynamic";
+
 export const { POST } = serve<{ accountId: string; userId: string }>(
   async (context) => {
 
@@ -28,7 +30,7 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
       });
 
       if (!dbAccount) {
-        return;
+        throw new Error("Account not found");
       }
 
       const account = new Account(dbAccount.accessToken);
@@ -37,7 +39,7 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
     })
 
     await context.run("Update account details in db", async () => {
-      if (!result) return;
+      if (!result) throw new Error("Sync failed");
 
       const { emails, deltaToken } = result;
       console.log("emails length: ", emails.length, deltaToken)
