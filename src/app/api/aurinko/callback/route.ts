@@ -4,7 +4,7 @@ import { exchangeCodeForAccessToken, getAccountDetails } from "@/lib/aurinko";
 import { db } from "@/server/db";
 import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
-import { waitUntil } from "@vercel/functions";
+// import { waitUntil } from "@vercel/functions";
 import { Client } from "@upstash/workflow";
 
 const upstashWorkflowClient = new Client({token: process.env.QSTASH_TOKEN!})
@@ -59,21 +59,33 @@ export const GET = async (request: NextRequest) => {
   });
 
   // Trigger initial email sync endpoint
-  waitUntil(
-    upstashWorkflowClient.trigger({
+  try {
+    await upstashWorkflowClient.trigger({
       url: `${process.env.NEXT_PUBLIC_URL!}/api/initial-sync`,
       body: {
         accountId: token.accountId.toString(),
-        userId
-      }
-    })
-      .then((workflowRunId) => {
-        console.log("Initial sync triggered with id: ", workflowRunId);
-      })
-      .catch((error) => {
-        console.log("Failed to trigger initial sync", error.response.data);
-      }),
-  );
+        userId,
+      },
+    });
+  } catch (workflowError) {
+    console.log("Failed to trigger initial sync", workflowError);
+  }
+
+  // waitUntil(
+  //   upstashWorkflowClient.trigger({
+  //     url: `${process.env.NEXT_PUBLIC_URL!}/api/initial-sync`,
+  //     body: {
+  //       accountId: token.accountId.toString(),
+  //       userId
+  //     }
+  //   })
+  //     .then((workflowRunId) => {
+  //       console.log("Initial sync triggered with id: ", workflowRunId);
+  //     })
+  //     .catch((error) => {
+  //       console.log("Failed to trigger initial sync", error.response.data);
+  //     }),
+  // );
 
   return NextResponse.redirect(new URL("/mail", request.url));
 };
