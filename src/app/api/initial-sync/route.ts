@@ -20,7 +20,7 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
     }
 
 
-    const result = await context.run("Perform initial sync", async () => {
+    await context.run("Perform initial sync", async () => {
       // Retrieve Account details from database
       const dbAccount = await db.account.findUnique({
         where: {
@@ -35,14 +35,11 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
 
       const account = new Account(dbAccount.accessToken);
 
-      return await account.performInitialSync();
-    })
-
-    await context.run("Update account details in db", async () => {
+      const result = await account.performInitialSync();
       if (!result) throw new Error("Sync failed");
 
       const { emails, deltaToken } = result;
-      console.log("emails length: ", emails.length, deltaToken)
+      console.log("emails length: ", emails.length, deltaToken);
 
       await db.account.update({
         where: {
@@ -56,6 +53,25 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
       //Write emails to database
       await syncEmailsToDatabase(emails, accountId);
     })
+
+    // await context.run("Update account details in db", async () => {
+    //   if (!result) throw new Error("Sync failed");
+
+    //   const { emails, deltaToken } = result;
+    //   console.log("emails length: ", emails.length, deltaToken)
+
+    //   await db.account.update({
+    //     where: {
+    //       id: accountId,
+    //     },
+    //     data: {
+    //       nextDeltaToken: deltaToken,
+    //     },
+    //   });
+
+    //   //Write emails to database
+    //   await syncEmailsToDatabase(emails, accountId);
+    // })
 
   },
   {
