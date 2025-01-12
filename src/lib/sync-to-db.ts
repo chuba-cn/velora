@@ -6,15 +6,15 @@ import type { EmailAddress, EmailAttachment, EmailMessage } from "@/types";
 import { Prisma } from "@prisma/client";
 import pLimit from "p-limit";
 import { OramaClient } from "./orama";
-import { turndown } from "./turndown";
-import { getEmbeddings } from "./embeddings";
+// import { turndown } from "./turndown";
+// import { getEmbeddings } from "./embeddings";
 
 export const syncEmailsToDatabase = async (emails: EmailMessage[], accountId: string) => {
   console.log("Attempting to sync emails to database", emails.length);
-  const promiseBatchLimit = pLimit(10); //process up to ten emails concurrently
+  // const promiseBatchLimit = pLimit(10); //process up to ten emails concurrently
 
-  const orama = new OramaClient(accountId);
-  await orama.initialize();
+  // const orama = new OramaClient(accountId);
+  // await orama.initialize();
 
   try {
 
