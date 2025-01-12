@@ -21,6 +21,8 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
 
 
     await context.run("Perform initial sync", async () => {
+      console.log("Inside 1st workflow run")
+
       // Retrieve Account details from database
       const dbAccount = await db.account.findUnique({
         where: {
@@ -52,6 +54,7 @@ export const { POST } = serve<{ accountId: string; userId: string }>(
 
       //Write emails to database
       await syncEmailsToDatabase(emails, accountId);
+      console.log("end of workflow run");
     })
 
     // await context.run("Update account details in db", async () => {

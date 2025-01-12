@@ -118,7 +118,6 @@ export class Account {
         deltaToken: storedDeltaToken,
       });
 
-      console.log("updated response records: ", updatedResponse.records)
       if (updatedResponse.nextDeltaToken) {
         // Sync has completed
         storedDeltaToken = updatedResponse.nextDeltaToken;
@@ -130,7 +129,6 @@ export class Account {
         updatedResponse = await this.getUpdatedEmails({
           pageToken: updatedResponse.nextPageToken,
         });
-         console.log("updated response records ++: ", updatedResponse.records);
         allEMails = allEMails.concat(updatedResponse.records);
         if (updatedResponse.nextDeltaToken) {
           // Sync has completed
