@@ -18,25 +18,25 @@ export const syncEmailsToDatabase = async (emails: EmailMessage[], accountId: st
 
   try {
 
-    async function syncToOrama() {
-      await Promise.all(emails.map(email => {
-        return promiseBatchLimit(async () => {
-          const body = turndown.turndown(email.body ?? email.bodySnippet ?? "");
-          const embeddings = await getEmbeddings(body);
+    // async function syncToOrama() {
+    //   await Promise.all(emails.map(email => {
+    //     return promiseBatchLimit(async () => {
+    //       const body = turndown.turndown(email.body ?? email.bodySnippet ?? "");
+    //       const embeddings = await getEmbeddings(body);
           
-          await orama.insert({
-            body,
-            subject: email.subject,
-            rawBody: email.bodySnippet ?? "",
-            from: `${email.from.name} <${email.from.address}>`,
-            to: email.to.map((t) => `${t.name} <${t.address}>`),
-            sentAt: new Date(email.sentAt).toLocaleString(),
-            threadId: email.threadId,
-            embeddings
-          });
-        })
-      }))
-    }
+    //       await orama.insert({
+    //         body,
+    //         subject: email.subject,
+    //         rawBody: email.bodySnippet ?? "",
+    //         from: `${email.from.name} <${email.from.address}>`,
+    //         to: email.to.map((t) => `${t.name} <${t.address}>`),
+    //         sentAt: new Date(email.sentAt).toLocaleString(),
+    //         threadId: email.threadId,
+    //         embeddings
+    //       });
+    //     })
+    //   }))
+    // }
 
     async function syncToDB() {
       for (const [ index, email ] of emails.entries()) {
@@ -46,8 +46,8 @@ export const syncEmailsToDatabase = async (emails: EmailMessage[], accountId: st
       }
     }
 
-    await Promise.all([ syncToOrama(), syncToDB() ]);
-    await orama.saveIndex();
+    await Promise.all([ syncToDB() ]);
+    // await orama.saveIndex();
 
   } catch (error) {
     console.error("Failed to sync emails to database", error);
