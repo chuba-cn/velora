@@ -40,7 +40,9 @@ export const syncEmailsToDatabase = async (emails: EmailMessage[], accountId: st
 
     async function syncToDB() {
       for (const [ index, email ] of emails.entries()) {
+        console.log(`Email ${email.subject} ${index} ready to upsert`)
         await upsertEmail(email, accountId, index);
+        console.log(`Email ${email.subject} upserted`)
       }
     }
 
