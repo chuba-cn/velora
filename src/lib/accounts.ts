@@ -44,7 +44,7 @@ export class Account {
           Authorization: `Bearer ${this.token}`,
         },
         params: {
-          daysWithin: 30,
+          daysWithin: 10,
           bodyType: "html",
         },
       },
