@@ -7,6 +7,7 @@ import useThreads from "@/hooks/useThreads";
 import { api, type RouterOutputs } from "@/trpc/react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ReplyBox = () => {
   const { accountId, threadId } = useThreads();
@@ -18,11 +19,10 @@ const ReplyBox = () => {
 
   if (!replyDetails) {
     return (
-      <div className="flex h-full w-full items-center justify-center">
-        <Loader2
-          size={20}
-          className="animate-spin text-black/40 dark:text-white"
-        />
+      <div className="flex items-start flex-col gap-2 w-full justify-center bg-primary/20 animate-pulse border-2 border-gray-200 pt-2">
+        <Skeleton className="h-4 w-full rounded-sm" />
+        <div className="h-10"></div>
+        <Skeleton className="h-6 w-full rounded-sm" />
       </div>
     );
   }
